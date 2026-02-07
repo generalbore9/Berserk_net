@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Berserk.net | Регистрация</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #050505; color: #e5e5e5; font-family: sans-serif; }
+        .berserk { color: #dc2626; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center bg-black">
+    <div class="w-full max-w-md p-8 bg-neutral-900 rounded-lg shadow-xl border border-neutral-800">
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 mx-auto bg-berserk rounded-full flex items-center justify-center text-white font-black text-3xl">B</div>
+            <h1 class="text-3xl font-black text-white mt-4">РЕГИСТРАЦИЯ</h1>
+            <p class="text-neutral-400 mt-2">Создайте аккаунт для доступа к инструментам</p>
+        </div>
+
+        <form id="register-form" class="space-y-6">
+            <div>
+                <label class="block text-sm font-medium text-neutral-300 mb-2">Имя пользователя</label>
+                <input type="text" id="username" required class="w-full bg-neutral-950 border border-neutral-800 rounded px-4 py-3 text-white placeholder-neutral-600 focus:outline-none focus:border-berserk focus:ring-1 focus:ring-berserk">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-neutral-300 mb-2">Email</label>
+                <input type="email" id="email" required class="w-full bg-neutral-950 border border-neutral-800 rounded px-4 py-3 text-white placeholder-neutral-600 focus:outline-none focus:border-berserk focus:ring-1 focus:ring-berserk">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-neutral-300 mb-2">Пароль</label>
+                <input type="password" id="password" required class="w-full bg-neutral-950 border border-neutral-800 rounded px-4 py-3 text-white placeholder-neutral-600 focus:outline-none focus:border-berserk focus:ring-1 focus:ring-berserk">
+            </div>
+
+            <button type="submit" class="w-full bg-berserk hover:bg-red-800 text-white py-4 font-bold uppercase tracking-wider transition-all hover:scale-105 active:scale-95 rounded">
+                СОЗДАТЬ АККАУНТ
+            </button>
+        </form>
+
+        <p class="text-center text-neutral-500 mt-6">
+            Уже зарегистрированы? <a href="login.html" class="text-berserk hover:underline">Войти</a>
+        </p>
+
+        <p class="text-center mt-4">
+            <a href="index.html" class="text-neutral-400 hover:text-white">← На главную</a>
+        </p>
+    </div>
+
+    <script>
+        document.getElementById('register-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            // Простая проверка
+            if (!username || username.length < 3) {
+                alert("Имя пользователя должно быть минимум 3 символа");
+                return;
+            }
+            if (!email || !email.includes('@') || !email.includes('.')) {
+                alert("Введите корректный email");
+                return;
+            }
+            if (!password || password.length < 6) {
+                alert("Пароль должен быть минимум 6 символов");
+                return;
+            }
+
+            // Сохраняем пользователя в localStorage
+            const user = {
+                username: username,
+                email: email,
+                password: password, // в реальном проекте НЕ храни пароль в открытом виде!
+                loggedIn: true
+            };
+
+            localStorage.setItem('user', JSON.stringify(user));
+
+            alert("Аккаунт успешно создан! Теперь войдите.");
+            window.location.href = "index.html"; // или "login.html", если хочешь сразу войти
+        });
+    </script>
+</body>
+</html>
