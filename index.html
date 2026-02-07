@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Berserk.net | OSINT Arsenal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        berserk: '#dc2626',
+                        dark: '#0a0a0a',
+                        card: '#171717',
+                        border: '#262626'
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out forwards',
+                        'slide-up': 'slideUp 0.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        slideUp: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #050505; color: #e5e5e5; font-family: sans-serif; }
+        .glitch-text { position: relative; }
+        .glitch-text::before, .glitch-text::after { content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .glitch-text::before { left: 2px; text-shadow: -1px 0 #dc2626; clip: rect(24px, 550px, 90px, 0); animation: glitch-anim-2 3s infinite linear alternate-reverse; }
+        .glitch-text::after { left: -2px; text-shadow: -1px 0 #00ffff; clip: rect(85px, 550px, 140px, 0); animation: glitch-anim 2.5s infinite linear alternate-reverse; }
+        @keyframes glitch-anim { 0% { clip: rect(10px, 9999px, 30px, 0); } 20% { clip: rect(80px, 9999px, 100px, 0); } 100% { clip: rect(5px, 9999px, 60px, 0); } }
+        @keyframes glitch-anim-2 { 0% { clip: rect(60px, 9999px, 80px, 0); } 20% { clip: rect(10px, 9999px, 40px, 0); } 100% { clip: rect(90px, 9999px, 110px, 0); } }
+
+        .network-section {
+            padding: 5rem 5%;
+            background: linear-gradient(180deg, #050505 0%, #080808 100%);
+            position: relative;
+            border-top: 1px solid #262626;
+        }
+        .network-header { text-align: center; margin-bottom: 3rem; }
+        .network-header h2 { font-size: 2rem; text-transform: uppercase; letter-spacing: 3px; color: #e5e5e5; margin-bottom: 0.5rem; }
+        .network-header .status-line { display: inline-block; width: 50px; height: 2px; background: #dc2626; box-shadow: 0 0 10px #dc2626; }
+        .network-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; max-width: 1000px; margin: 0 auto; }
+        .node-card {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: rgba(10, 10, 10, 0.8); border: 1px solid #262626; padding: 2.5rem 1.5rem;
+            text-decoration: none; color: #e5e5e5; position: relative; transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+            clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
+        }
+        .node-card:hover { border-color: #dc2626; background: rgba(220,38,38,0.05); transform: translateY(-8px); box-shadow: 0 10px 40px rgba(220,38,38,0.15); }
+        .node-icon { width: 50px; height: 50px; margin-bottom: 1.5rem; color: #737373; transition: color 0.3s; }
+        .node-card:hover .node-icon { color: #dc2626; filter: drop-shadow(0 0 5px #dc2626); }
+        .node-role { font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; color: #737373; margin-bottom: 0.5rem; }
+        .node-handle { font-size: 1.2rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem; }
+        .node-status { display: flex; align-items: center; gap: 0.5rem; font-size: 0.7rem; color: #dc2626; text-transform: uppercase; letter-spacing: 1px; background: rgba(220,38,38,0.1); padding: 0.3rem 0.8rem; border-radius: 2px; }
+        .status-dot { width: 6px; height: 6px; background: #dc2626; border-radius: 50%; animation: blink 2s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .node-arrow { position: absolute; top: 1rem; right: 1rem; opacity: 0; transform: translateX(-10px); transition: all 0.3s; color: #dc2626; }
+        .node-card:hover .node-arrow { opacity: 1; transform: translateX(0); }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+    <!-- ENTER SCREEN -->
+    <div id="enter-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black transition-opacity duration-700">
+        <div class="text-center space-y-8 animate-slide-up">
+            <svg class="w-16 h-16 mx-auto text-berserk animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+            </svg>
+            <h1 class="text-4xl md:text-6xl font-black tracking-tighter text-white uppercase" data-i18n="enter">ИНИЦИАЛИЗАЦИЯ</h1>
+            <p class="text-neutral-500 max-w-md mx-auto" data-i18n="enterSubtitle">Система безопасности готова к запуску</p>
+            <button id="enter-btn" class="group relative px-8 py-4 bg-transparent border-2 border-berserk text-berserk font-bold uppercase tracking-widest hover:bg-berserk hover:text-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-berserk focus:ring-offset-2 focus:ring-offset-black">
+                <span class="absolute inset-0 w-full h-full bg-berserk/20 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></span>
+                <span class="relative flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
+                    <span data-i18n="enterBtn">Войти в систему</span>
+                </span>
+            </button>
+        </div>
+        <div class="absolute bottom-8 text-xs text-neutral-700 font-mono">SECURE CONNECTION // ENCRYPTED</div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="app" class="opacity-0 transition-opacity duration-1000 flex flex-col min-h-screen">
+
+        <!-- NAVBAR -->
+        <nav class="fixed top-0 w-full z-40 bg-black/80 backdrop-blur-md border-b border-[#262626]">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 bg-berserk flex items-center justify-center font-black text-white">B</div>
+                        <span class="font-bold text-xl tracking-tight text-white">BERSERK<span class="text-berserk">.NET</span></span>
+                    </div>
+                    <div class="hidden md:flex items-center space-x-8" id="desktop-nav">
+                        <button onclick="scrollToSection('tools')" class="text-neutral-400 hover:text-white transition-colors text-sm font-medium uppercase tracking-wide" data-i18n="tools">Инструменты</button>
+                        <button onclick="openModal('docs')" class="text-neutral-400 hover:text-white transition-colors text-sm font-medium uppercase tracking-wide" data-i18n="docs">Документация</button>
+                        <button onclick="openModal('about')" class="text-neutral-400 hover:text-white transition-colors text-sm font-medium uppercase tracking-wide" data-i18n="about">О нас</button>
+                        <div class="h-4 w-px bg-neutral-800"></div>
+                        <button id="lang-toggle" class="text-xs font-bold border border-neutral-700 px-2 py-1 rounded hover:border-berserk hover:text-berserk transition-colors focus:ring-2 focus:ring-berserk focus:outline-none">RU</button>
+                        <a href="register.html" id="signup-btn" class="bg-berserk hover:bg-red-800 text-white px-4 py-2 text-sm font-bold uppercase tracking-wider transition-all hover:scale-105 active:scale-95 focus:ring-2 focus:ring-berserk focus:ring-offset-2 focus:ring-offset-black" data-i18n="signup">Регистрация</a>
+                    </div>
+                    <div class="md:hidden flex items-center gap-4">
+                        <button id="mobile-lang-toggle" class="text-xs font-bold border border-neutral-700 px-2 py-1 rounded">RU</button>
+                        <button id="mobile-menu-btn" class="text-neutral-400 hover:text-white focus:outline-none">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div id="mobile-nav" class="md:hidden hidden bg-black border-b border-[#262626] absolute w-full">
+                <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                    <button onclick="scrollToSection('tools'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-base font-medium text-neutral-300 hover:text-white hover:bg-neutral-900" data-i18n="tools">Инструменты</button>
+                    <button onclick="openModal('docs'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-base font-medium text-neutral-300 hover:text-white hover:bg-neutral-900" data-i18n="docs">Документация</button>
+                    <button onclick="openModal('about'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-base font-medium text-neutral-300 hover:text-white hover:bg-neutral-900" data-i18n="about">О нас</button>
+                    <a href="register.html" id="mobile-signup" onclick="toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-base font-medium text-berserk hover:text-red-400" data-i18n="signup">Регистрация</a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- HERO -->
+        <header class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
+            <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#dc262610] via-black to-black"></div>
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#dc262630] bg-[#dc262610] text-berserk text-xs font-bold uppercase tracking-widest mb-8 animate-fade-in">
+                    <span class="w-2 h-2 rounded-full bg-berserk animate-pulse"></span>
+                    <span data-i18n="betaBadge">Бета-версия</span>
+                </div>
+                <h1 id="hero-title" class="text-5xl md:text-7xl lg:text-8xl font-black text-white tracking-tighter mb-6 glitch-text" data-text="АРСЕНАЛ OSINT" data-i18n="heroTitle">АРСЕНАЛ OSINT</h1>
+                <p class="mt-4 max-w-2xl mx-auto text-xl text-neutral-400 mb-10 leading-relaxed" data-i18n="heroSubtitle">Профессиональные инструменты для сбора разведданных, кодирования и анализа. Без компромиссов.</p>
+                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                    <a href="register.html" id="hero-start-btn" class="px-8 py-4 bg-berserk text-white font-bold uppercase tracking-wider text-lg hover:bg-red-800 transition-all hover:scale-105 active:scale-95 focus:ring-2 focus:ring-berserk focus:ring-offset-2 focus:ring-offset-black flex items-center justify-center gap-2">
+                        <span data-i18n="startFree">Начать</span>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                    </a>
+                    <button onclick="openModal('docs')" class="px-8 py-4 bg-transparent border border-neutral-700 text-neutral-300 font-bold uppercase tracking-wider text-lg hover:border-berserk hover:text-white transition-all hover:scale-105 active:scale-95 focus:ring-2 focus:ring-berserk focus:ring-offset-2 focus:ring-offset-black" data-i18n="documentation">Документация</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- TOOLS -->
+        <section id="tools" class="py-20 bg-black">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-end mb-12">
+                    <div>
+                        <h2 class="text-3xl font-bold text-white mb-2" data-i18n="toolsHeader">Доступные инструменты</h2>
+                        <div class="h-1 w-20 bg-berserk"></div>
+                    </div>
+                    <div class="text-neutral-500 font-mono text-sm">
+                        <span id="stat-tools">0</span> <span data-i18n="statTools">МОДУЛЕЙ</span>
+                    </div>
+                </div>
+                <div id="tools-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </div>
+        </section>
+
+        <!-- NETWORK ACCESS -->
+        <section class="network-section">
+            <div class="network-header">
+                <h2 data-i18n="networkTitle">Сетевой Доступ</h2>
+                <div class="status-line"></div>
+            </div>
+            <div class="network-grid">
+                <a href="https://t.me/tryvenn" class="node-card" target="_blank">
+                    <svg class="node-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <span class="node-role" data-i18n="ownerRole">Владелец</span>
+                    <span class="node-handle">@tryvenn</span>
+                    <div class="node-status"><div class="status-dot"></div><span data-i18n="online">Онлайн</span></div>
+                    <svg class="node-arrow w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </a>
+                <a href="https://t.me/Berserkk_net" class="node-card" target="_blank">
+                    <svg class="node-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+                    <span class="node-role" data-i18n="projectRole">Проект</span>
+                    <span class="node-handle">@Berserkk_net</span>
+                    <div class="node-status"><div class="status-dot"></div><span data-i18n="channel">Канал</span></div>
+                    <svg class="node-arrow w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </a>
+                <a href="https://t.me/Redclvn" class="node-card" target="_blank">
+                    <svg class="node-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+                    <span class="node-role" data-i18n="adapterRole">Адаптер</span>
+                    <span class="node-handle">@Redclvn</span>
+                    <div class="node-status"><div class="status-dot"></div><span data-i18n="support">Поддержка</span></div>
+                    <svg class="node-arrow w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </a>
+                <a href="https://t.me/Lirrise" class="node-card" target="_blank">
+                    <svg class="node-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+                    <span class="node-role" data-i18n="support2Role">Поддержка 2</span>
+                    <span class="node-handle">@Lirrise</span>
+                    <div class="node-status"><div class="status-dot"></div><span data-i18n="support">Поддержка</span></div>
+                    <svg class="node-arrow w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </a>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="border-t border-[#262626] bg-black py-12 mt-auto">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6 text-center md:text-left">
+                <div class="flex items-center gap-2 justify-center md:justify-start">
+                    <div class="w-6 h-6 bg-berserk flex items-center justify-center font-black text-white text-xs">B</div>
+                    <span class="font-bold text-white">BERSERK.NET</span>
+                </div>
+                <div class="text-neutral-600 text-sm font-mono">&copy; 2025 BERSERK SECURITY. <span class="text-berserk">NO LOGS. NO LIMITS.</span></div>
+                <div class="flex gap-4 text-neutral-600 text-sm flex-wrap justify-center md:justify-end">
+                    <button onclick="openModal('privacy')" data-i18n="privacy">Политика конфиденциальности</button>
+                    <button onclick="openModal('terms')" data-i18n="terms">Условия использования</button>
+                    <button onclick="openModal('about')" data-i18n="about">О нас</button>
+                    <button onclick="openModal('docs')" data-i18n="docs">Документация</button>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- MODAL -->
+    <div id="modal-overlay" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm">
+        <div class="flex min-h-full items-center justify-center p-4">
+            <div class="relative bg-neutral-900 border border-neutral-800 rounded-lg shadow-xl max-w-lg w-full p-8 overflow-y-auto max-h-[90vh]" onclick="event.stopPropagation()">
+                <button onclick="closeModal()" class="absolute top-4 right-4 text-neutral-500 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+                <div id="modal-content" class="prose prose-invert max-w-none text-neutral-300"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast" class="fixed bottom-4 right-4 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <div class="bg-neutral-900 border border-berserk text-white px-6 py-4 rounded shadow-lg flex items-center gap-3">
+            <svg class="w-5 h-5 text-berserk" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            <span id="toast-message" class="font-medium">Успех</span>
+        </div>
+    </div>
+
+    <script>
+        // Проверка авторизации
+        function checkAuth() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (user && user.loggedIn) {
+                document.querySelectorAll('#signup-btn, #mobile-signup, #hero-start-btn').forEach(el => {
+                    if (el) {
+                        el.outerHTML = `
+                            <div class="flex items-center gap-4">
+                                <span class="text-neutral-300">Привет, ${user.username}</span>
+                                <a href="#" onclick="openProfile()" class="text-neutral-300 hover:text-white px-3 py-1 rounded hover:bg-neutral-800 transition">Профиль</a>
+                                <button onclick="logout()" class="bg-neutral-800 hover:bg-neutral-700 text-white px-4 py-2 text-sm font-bold uppercase rounded transition-all">Выйти</button>
+                            </div>
+                        `;
+                    }
+                });
+
+                const mobileNav = document.getElementById('mobile-nav');
+                if (mobileNav) {
+                    const signupLink = mobileNav.querySelector('#mobile-signup');
+                    if (signupLink) {
+                        signupLink.outerHTML = `
+                            <div class="px-3 py-2 text-base font-medium text-neutral-300">
+                                Привет, ${user.username} • 
+                                <a href="#" onclick="openProfile()" class="text-berserk hover:text-red-400">Профиль</a> • 
+                                <button onclick="logout()" class="text-berserk hover:text-red-400">Выйти</button>
+                            </div>
+                        `;
+                    }
+                }
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.reload();
+        }
+
+        function openProfile() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            alert(`Профиль:\nUsername: ${user.username}\nEmail: ${user.email}`);
+        }
+
+        const translations = {
+            ru: {
+                enter: "ИНИЦИАЛИЗАЦИЯ", enterSubtitle: "Система безопасности готова к запуску", enterBtn: "Войти в систему",
+                tools: "Инструменты", docs: "Документация", about: "О нас", signup: "Регистрация",
+                heroTitle: "АРСЕНАЛ OSINT", heroSubtitle: "Профессиональные инструменты для сбора разведданных, кодирования и анализа. Без компромиссов.",
+                betaBadge: "Бета-версия", startFree: "Начать", documentation: "Документация",
+                toolsHeader: "Доступные инструменты", statTools: "МОДУЛЕЙ",
+                toolDesc: "Этот инструмент в разработке. Присоединитесь к листу ожидания.",
+                joinWaitlist: "В лист ожидания", waitlistSuccess: "Вы успешно добавлены в лист ожидания!",
+                registrationTitle: "Создать аккаунт", registrationSubtitle: "Получите доступ ко всему арсеналу инструментов.",
+                username: "Имя пользователя", email: "Email", password: "Пароль", createAccount: "Создать аккаунт",
+                privacy: "Политика конфиденциальности",
+                terms: "Условия использования",
+                privacyTitle: "Политика конфиденциальности",
+                privacyContent: `<h3 class="text-xl font-bold mb-4">🔐 Политика конфиденциальности (Privacy Policy)</h3>
+<p class="mb-3">Последнее обновление: февраль 2026</p>
+<p class="mb-4">BERSERK.NET уважает конфиденциальность пользователей и стремится защищать любую информацию, которую ты предоставляешь при использовании платформы.</p>
+<ol class="list-decimal pl-5 space-y-4 text-neutral-300">
+    <li><strong>Сбор информации</strong><br>Мы можем собирать минимальные данные, которые ты предоставляешь добровольно, включая:<br>• имя пользователя,<br>• адрес электронной почты,<br>• техническую информацию (тип устройства, браузер, язык).<br>Сайт может использовать cookies и аналогичные технологии для улучшения работы сервиса и аналитики.</li>
+    <li><strong>Использование информации</strong><br>Собранная информация используется исключительно для:<br>• обеспечения работы платформы,<br>• улучшения функционала и пользовательского опыта,<br>• связи с пользователем при необходимости (уведомления, обновления).<br>Мы не продаём, не передаём и не распространяем личные данные третьим лицам без законных оснований.</li>
+    <li><strong>Хранение данных</strong><br>Мы принимаем разумные меры для защиты информации, однако не можем гарантировать абсолютную безопасность данных в интернете.<br>Пользователь понимает и принимает, что использование сервиса осуществляется на его собственный риск.</li>
+    <li><strong>Сторонние сервисы</strong><br>Платформа может использовать сторонние сервисы аналитики или хостинга, которые имеют собственные политики конфиденциальности.</li>
+    <li><strong>Изменения политики</strong><br>Мы оставляем за собой право обновлять или изменять настоящую Политику конфиденциальности без предварительного уведомления.<br>Актуальная версия всегда доступна на сайте.</li>
+    <li><strong>Контакты</strong><br>Если у тебя есть вопросы по поводу конфиденциальности, ты можешь связаться с нами через официальные каналы проекта.</li>
+</ol>`,
+                termsTitle: "Условия использования",
+                termsContent: `<h3 class="text-xl font-bold mb-4">📜 Условия использования (Terms of Service)</h3>
+<p class="mb-4">Используя платформу BERSERK.NET, ты подтверждаешь, что ознакомился и согласен с настоящими Условиями использования.</p>
+<ol class="list-decimal pl-5 space-y-4 text-neutral-300">
+    <li><strong>Общие положения</strong><br>BERSERK.NET предоставляет доступ к инструментам и информационным материалам в ознакомительных и образовательных целях.<br>Платформа предоставляется «как есть», без каких-либо гарантий точности, полноты или постоянной доступности.</li>
+    <li><strong>Ответственность пользователя</strong><br>Пользователь самостоятельно несёт ответственность за:<br>• использование инструментов платформы,<br>• интерпретацию полученных результатов,<br>• соблюдение законодательства своей страны.<br>BERSERK.NET не несёт ответственности за любой ущерб, возникший в результате использования сервиса.</li>
+    <li><strong>Ограничение ответственности</strong><br>Администрация проекта не гарантирует:<br>• бесперебойную работу сайта,<br>• отсутствие ошибок,<br>• точность или актуальность информации.<br>Все действия, выполненные на платформе, осуществляются на страх и риск пользователя.</li>
+    <li><strong>Запрещённые действия</strong><br>Пользователю запрещается:<br>• нарушать законодательство своей страны,<br>• использовать платформу для причинения вреда другим лицам,<br>• вмешиваться в работу сайта, сервисов или серверов,<br>• пытаться получить несанкционированный доступ к системе.<br>При нарушении условий доступ может быть ограничен или прекращён без объяснения причин.</li>
+    <li><strong>Интеллектуальная собственность</strong><br>Все материалы, логотипы, дизайн и структура сайта принадлежат BERSERK.NET и защищены действующим законодательством.<br>Запрещено копирование или распространение материалов без разрешения.</li>
+    <li><strong>Изменения условий</strong><br>Администрация оставляет за собой право изменять Условия использования в любое время.<br>Продолжение использования платформы означает согласие с обновлёнными условиями.</li>
+    <li><strong>Прекращение доступа</strong><br>Мы можем временно или полностью ограничить доступ к платформе без предварительного уведомления при нарушении условий.</li>
+</ol>`,
+                aboutTitle: "О нас",
+                aboutContent: `<h3 class="text-xl font-bold mb-4">О нас — BERSERK.NET</h3>
+<p class="mb-4">BERSERK.NET — это не просто сайт с инструментами.<br>Это рабочая среда для тех, кто думает, анализирует и действует.</p>
+<p class="mb-4">Мы создаём платформу, где нет лишнего шума, нет пустых обещаний и нет бесполезных кнопок.<br>Только инструменты, которые дают результат.</p>
+<p class="mb-4">BERSERK.NET родился из одной простой идеи:<br>человек должен иметь доступ к информации и технологиям без ограничений и лишней болтовни.</p>
+<p class="mb-4">Здесь:</p>
+<ul class="list-disc pl-5 space-y-2 mb-4">
+    <li>анализируют данные, а не играют в имитацию,</li>
+    <li>используют инструменты, а не смотрят демо,</li>
+    <li>изучают, тестируют, проверяют и применяют.</li>
+</ul>
+<p class="mb-4">Мы не гонимся за массовостью.<br>Мы делаем продукт для тех, кто понимает, зачем он здесь.</p>
+<p class="mb-4">Это только начало.<br>Платформа развивается, инструменты дополняются, возможности расширяются.</p>
+<p class="font-bold">BERSERK.NET — инструмент для тех, кто выбирает контроль.</p>`,
+                docsTitle: "Документация",
+                docsContent: `<h3 class="text-xl font-bold mb-4">📄 Документация — как всё работает</h3>
+<p class="mb-4">Эта документация создана, чтобы ты сразу понимал, что нажимать и зачем.<br>Без усложнений. Без лишней теории.</p>
+<ul class="list-disc pl-5 space-y-4 text-neutral-300">
+    <li><strong>Начать бесплатно</strong><br>Нажатие кнопки «Начать бесплатно» открывает базовый доступ к платформе.<br>Ты можешь:<br>• просматривать доступные инструменты,<br>• тестировать базовые функции,<br>• знакомиться с интерфейсом и возможностями.<br>Регистрация нужна только для сохранения данных и расширенных функций.</li>
+    <li><strong>Инструменты</strong><br>Каждый инструмент имеет:<br>• конкретную задачу,<br>• понятный результат,<br>• минимальный ввод.<br>Если инструмент находится в разработке — это явно указано.<br>Никаких «фейковых» функций.</li>
+    <li><strong>Лист ожидания</strong><br>Некоторые функции сейчас ограничены.<br>Ты можешь добавить себя в лист ожидания, чтобы:<br>• первым получить доступ,<br>• быть уведомлённым о запуске,<br>• участвовать в тестировании.</li>
+    <li><strong>Языки (RU / EN)</strong><br>Платформа поддерживает два языка:<br>• Русский<br>• English<br>Переключение языка не влияет на функциональность.</li>
+    <li><strong>Статус проекта</strong><br>BERSERK.NET находится в активной разработке.<br>Функции будут:<br>• добавляться,<br>• улучшаться,<br>• оптимизироваться.<br>Документация будет обновляться вместе с платформой.</li>
+    <li><strong>Контакты и связь</strong><br>Все обновления, анонсы и новости выходят в официальных каналах проекта.<br>Сетевой Доступ — через платформу и социальные сети.</li>
+</ul>`
+            },
+            en: {
+                enter: "INITIALIZATION",
+                enterSubtitle: "Security system ready to launch",
+                enterBtn: "Enter system",
+                tools: "Tools",
+                docs: "Documentation",
+                about: "About",
+                signup: "Sign Up",
+                heroTitle: "OSINT ARSENAL",
+                heroSubtitle: "Professional tools for intelligence gathering, encoding and analysis. No compromises.",
+                betaBadge: "Beta version",
+                startFree: "Start Free",
+                documentation: "Documentation",
+                toolsHeader: "Available Tools",
+                statTools: "MODULES",
+                toolDesc: "This tool is currently in development. Join the waitlist.",
+                joinWaitlist: "Join waitlist",
+                waitlistSuccess: "You have been successfully added to the waitlist!",
+                registrationTitle: "Create an account",
+                registrationSubtitle: "Get access to the full arsenal of tools.",
+                username: "Username",
+                email: "Email",
+                password: "Password",
+                createAccount: "Create account",
+                privacy: "Privacy Policy",
+                terms: "Terms of Service",
+                privacyTitle: "Privacy Policy",
+                privacyContent: `<h3 class="text-xl font-bold mb-4">🔐 Privacy Policy</h3>
+<p class="mb-3">Last updated: February 2026</p>
+<p class="mb-4">BERSERK.NET respects user privacy and aims to protect any information you provide while using the platform.</p>
+<ol class="list-decimal pl-5 space-y-4 text-neutral-300">
+    <li><strong>Information Collection</strong><br>We may collect minimal information voluntarily provided by the user, including:<br>• username,<br>• email address,<br>• technical data (device type, browser, language).<br>The platform may use cookies or similar technologies to improve functionality and analytics.</li>
+    <li><strong>Use of Information</strong><br>Collected information is used solely for:<br>• platform operation,<br>• improving functionality and user experience,<br>• communication when necessary (updates, notifications).<br>We do not sell, share or distribute personal data to third parties without legal grounds.</li>
+    <li><strong>Data Storage</strong><br>Reasonable measures are taken to protect user data, however absolute security on the internet cannot be guaranteed.<br>Use of the platform is at the user’s own risk.</li>
+    <li><strong>Third-Party Services</strong><br>The platform may use third-party analytics or hosting services with their own privacy policies.</li>
+    <li><strong>Policy Updates</strong><br>We reserve the right to update this Privacy Policy without prior notice.<br>The current version is always available on the website.</li>
+    <li><strong>Contact</strong><br>Questions regarding privacy can be addressed via official project channels.</li>
+</ol>`,
+                termsTitle: "Terms of Service",
+                termsContent: `<h3 class="text-xl font-bold mb-4">📜 Terms of Service</h3>
+<p class="mb-4">By using BERSERK.NET, you confirm that you have read and agreed to these Terms of Service.</p>
+<ol class="list-decimal pl-5 space-y-4 text-neutral-300">
+    <li><strong>General Terms</strong><br>BERSERK.NET provides tools and materials for educational and informational purposes only.<br>The platform is provided “as is” without warranties of accuracy, completeness or availability.</li>
+    <li><strong>User Responsibility</strong><br>Users are fully responsible for:<br>• how the tools are used,<br>• interpretation of results,<br>• compliance with local laws.<br>BERSERK.NET is not responsible for any damage resulting from platform usage.</li>
+    <li><strong>Limitation of Liability</strong><br>We do not guarantee uninterrupted service, error-free operation or data accuracy.<br>All actions are performed at the user’s own risk.</li>
+    <li><strong>Prohibited Activities</strong><br>Users must not:<br>• violate applicable laws,<br>• cause harm to others,<br>• interfere with site or server operation,<br>• attempt unauthorized system access.<br>Violations may result in restricted or terminated access without notice.</li>
+    <li><strong>Intellectual Property</strong><br>All content, branding and structure belong to BERSERK.NET and are protected by law.<br>Unauthorized copying or distribution is prohibited.</li>
+    <li><strong>Changes to Terms</strong><br>Terms may be modified at any time.<br>Continued use means acceptance of updated terms.</li>
+    <li><strong>Access Termination</strong><br>Access may be suspended or terminated at any time in case of violations.</li>
+</ol>`,
+                aboutTitle: "About Us",
+                aboutContent: `<h3 class="text-xl font-bold mb-4">About BERSERK.NET</h3>
+<p class="mb-4">BERSERK.NET is not just a website with tools.<br>It is a working environment for those who analyze, think and act.</p>
+<p class="mb-4">We build a platform without noise, empty promises or useless features.<br>Only tools that produce results.</p>
+<p class="mb-4">BERSERK.NET was built on a simple idea:<br>people should have access to information and technology without unnecessary friction.</p>
+<ul class="list-disc pl-5 space-y-2 mb-4">
+    <li>Data is analyzed, not simulated</li>
+    <li>Tools are used, not demoed</li>
+    <li>Learning, testing and applying come first</li>
+</ul>
+<p class="mb-4">We are not focused on mass adoption.<br>This platform is built for those who understand why they are here.</p>
+<p class="mb-4">This is just the beginning.<br>The platform evolves, tools expand, capabilities grow.</p>
+<p class="font-bold">BERSERK.NET — control belongs to those who choose it.</p>`,
+                docsTitle: "Documentation",
+                docsContent: `<h3 class="text-xl font-bold mb-4">📄 Documentation — How It Works</h3>
+<p class="mb-4">This documentation is designed to make everything clear from the start.<br>No overload. No unnecessary theory.</p>
+<ul class="list-disc pl-5 space-y-4 text-neutral-300">
+    <li><strong>Start Free</strong><br>Clicking “Start Free” grants basic access to the platform.<br>You can:<br>• explore available tools,<br>• test core features,<br>• learn the interface and workflow.<br>Registration is required only for saving data and advanced features.</li>
+    <li><strong>Tools</strong><br>Each tool has:<br>• a specific purpose,<br>• a clear result,<br>• minimal input.<br>Tools under development are clearly marked.</li>
+    <li><strong>Waitlist</strong><br>Some features are currently limited.<br>The waitlist allows you to:<br>• get early access,<br>• receive launch notifications,<br>• participate in testing.</li>
+    <li><strong>Languages (RU / EN)</strong><br>The platform supports two languages:<br>• Russian<br>• English<br>Language switching does not affect functionality.</li>
+    <li><strong>Project Status</strong><br>BERSERK.NET is under active development.<br>Features will be:<br>• added,<br>• improved,<br>• optimized.<br>Documentation is updated alongside the platform.</li>
+    <li><strong>Contacts & Updates</strong><br>All announcements and updates are published via official project channels and social platforms.</li>
+</ul>`
+            }
+        };
+
+        const toolsData = [
+            { id: 1, icon: '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M9 3v18"/><path d="M15 3v18"/><path d="M3 9h18"/><path d="M3 15h18"/>', name: { en: "IP Analyzer", ru: "Анализатор IP" }, desc: { en: "Deep analysis of IP addresses.", ru: "Глубокий анализ IP-адресов." } },
+            { id: 2, icon: '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>', name: { en: "Hash Decryptor", ru: "Дешифратор Хешей" }, desc: { en: "Identify and decrypt hash types.", ru: "Идентификация и дешифрование хешей." } },
+            { id: 3, icon: '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>', name: { en: "Geo Tracker", ru: "Гео Трекер" }, desc: { en: "Track location data from coordinates.", ru: "Отслеживание локации по координатам." } },
+            { id: 4, icon: '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>', name: { en: "Mail Hunter", ru: "Охотник за Почтой" }, desc: { en: "Search for emails in data breaches.", ru: "Поиск email в утечках данных." } },
+            { id: 5, icon: '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>', name: { en: "Domain Check", ru: "Проверка Домена" }, desc: { en: "WHOIS and DNS lookup tools.", ru: "Инструменты WHOIS и DNS поиска." } },
+            { id: 6, icon: '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>', name: { en: "Threat Intel", ru: "Угрозы Intel" }, desc: { en: "Check IP/Domain against blacklists.", ru: "Проверка IP/Домена по черным спискам." } }
+        ];
+
+        const state = { lang: localStorage.getItem('lang') || 'ru', isModalOpen: false };
+        const els = {
+            enterScreen: document.getElementById('enter-screen'),
+            enterBtn: document.getElementById('enter-btn'),
+            app: document.getElementById('app'),
+            langToggle: document.getElementById('lang-toggle'),
+            mobileLangToggle: document.getElementById('mobile-lang-toggle'),
+            toolsGrid: document.getElementById('tools-grid'),
+            modalOverlay: document.getElementById('modal-overlay'),
+            modalContent: document.getElementById('modal-content'),
+            toast: document.getElementById('toast'),
+            toastMsg: document.getElementById('toast-message'),
+            mobileMenuBtn: document.getElementById('mobile-menu-btn'),
+            mobileNav: document.getElementById('mobile-nav'),
+            statTools: document.getElementById('stat-tools'),
+            heroTitle: document.getElementById('hero-title')
+        };
+
+        function init() {
+            els.enterBtn.addEventListener('click', () => {
+                els.enterScreen.style.opacity = '0';
+                setTimeout(() => { 
+                    els.enterScreen.style.display = 'none'; 
+                    els.app.classList.remove('opacity-0'); 
+                    animateStats(); 
+                    renderTools(); 
+                    checkAuth(); 
+                }, 700);
+            });
+
+            els.langToggle.addEventListener('click', toggleLanguage);
+            els.mobileLangToggle.addEventListener('click', toggleLanguage);
+            els.mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && state.isModalOpen) closeModal(); });
+
+            updateLanguage();
+            renderTools();
+            checkAuth();
+        }
+
+        function checkAuth() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (user && user.loggedIn) {
+                document.querySelectorAll('#signup-btn, #mobile-signup, #hero-start-btn').forEach(el => {
+                    if (el) {
+                        el.outerHTML = `
+                            <div class="flex items-center gap-4">
+                                <span class="text-neutral-300">Привет, ${user.username}</span>
+                                <a href="#" onclick="openProfile()" class="text-neutral-300 hover:text-white px-3 py-1 rounded hover:bg-neutral-800 transition">Профиль</a>
+                                <button onclick="logout()" class="bg-neutral-800 hover:bg-neutral-700 text-white px-4 py-2 text-sm font-bold uppercase rounded transition-all">Выйти</button>
+                            </div>
+                        `;
+                    }
+                });
+
+                const mobileNav = document.getElementById('mobile-nav');
+                if (mobileNav) {
+                    const signupLink = mobileNav.querySelector('#mobile-signup');
+                    if (signupLink) {
+                        signupLink.outerHTML = `
+                            <div class="px-3 py-2 text-base font-medium text-neutral-300">
+                                Привет, ${user.username} • 
+                                <a href="#" onclick="openProfile()" class="text-berserk hover:text-red-400">Профиль</a> • 
+                                <button onclick="logout()" class="text-berserk hover:text-red-400">Выйти</button>
+                            </div>
+                        `;
+                    }
+                }
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.reload();
+        }
+
+        function openProfile() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            alert(`Профиль:\nUsername: ${user.username}\nEmail: ${user.email}`);
+        }
+
+        function toggleLanguage() {
+            state.lang = state.lang === 'ru' ? 'en' : 'ru';
+            localStorage.setItem('lang', state.lang);
+            updateLanguage();
+            renderTools();
+        }
+
+        function updateLanguage() {
+            const t = translations[state.lang];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) el.textContent = t[key];
+            });
+            els.heroTitle.setAttribute('data-text', t.heroTitle);
+            els.langToggle.textContent = state.lang.toUpperCase();
+            els.mobileLangToggle.textContent = state.lang.toUpperCase();
+        }
+
+        function renderTools() {
+            const t = translations[state.lang];
+            if (!els.toolsGrid) return;
+            els.toolsGrid.innerHTML = toolsData.map(tool => `
+                <button onclick="openModal('tool', ${tool.id})" class="group relative w-full text-left p-6 bg-neutral-900 border border-neutral-800 hover:border-berserk transition-all duration-300 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-berserk focus:ring-offset-2 focus:ring-offset-black rounded-lg">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="p-3 bg-neutral-950 rounded-lg text-berserk group-hover:text-white group-hover:bg-berserk transition-colors">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${tool.icon}</svg>
+                        </div>
+                        <svg class="w-5 h-5 text-neutral-600 group-hover:text-berserk transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2 group-hover:text-berserk transition-colors">${tool.name[state.lang]}</h3>
+                    <p class="text-sm text-neutral-400">${tool.desc[state.lang]}</p>
+                </button>
+            `).join('');
+        }
+
+        function animateStats() {
+            let count = 0; const target = toolsData.length;
+            const interval = setInterval(() => { 
+                count++; 
+                if (els.statTools) els.statTools.textContent = count; 
+                if (count >= target) clearInterval(interval); 
+            }, 100);
+        }
+
+        function openModal(type, id = null) {
+            state.isModalOpen = true;
+            const t = translations[state.lang];
+            let html = '';
+
+            const user = JSON.parse(localStorage.getItem('user'));
+            const isLoggedIn = user && user.loggedIn;
+
+            if (type === 'tool') {
+                const tool = toolsData.find(tl => tl.id === id);
+
+                if (!isLoggedIn) {
+                    html = `
+                        <div class="text-center py-12">
+                            <svg class="w-20 h-20 mx-auto text-berserk mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                            <h2 class="text-3xl font-black text-white mb-4">Доступ ограничен</h2>
+                            <p class="text-xl text-neutral-400 mb-8">Зарегистрируйся или войди, чтобы использовать инструменты</p>
+                            <div class="flex flex-col sm:flex-row gap-6 justify-center">
+                                <a href="register.html" class="px-10 py-5 bg-berserk text-white font-bold uppercase tracking-wider text-xl hover:bg-red-800 transition-all hover:scale-105 rounded-lg shadow-lg">
+                                    Регистрация
+                                </a>
+                                <a href="login.html" class="px-10 py-5 bg-neutral-800 text-white font-bold uppercase tracking-wider text-xl hover:bg-neutral-700 transition-all hover:scale-105 rounded-lg shadow-lg">
+                                    Войти
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    if (id === 1) {
+                        html = `
+                            <div class="text-center mb-8">
+                                <div class="inline-flex p-4 bg-berserk/10 rounded-full text-berserk mb-4">
+                                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">${tool.icon}</svg>
+                                </div>
+                                <h2 class="text-2xl font-bold text-white uppercase tracking-wider">${tool.name[state.lang]}</h2>
+                                <p class="text-neutral-400 mt-2">${tool.desc[state.lang]}</p>
+                            </div>
+                            <form onsubmit                            <form onsubmit="analyzeIP(event); return false;">
+                                <input type="text" id="ip-input" placeholder="Введите IP (пример: 8.8.8.8)" required class="w-full bg-neutral-950 border border-neutral-800 rounded px-4 py-3 text-white placeholder-neutral-600 focus:outline-none focus:border-berserk focus:ring-1 focus:ring-berserk mb-4">
+                                <button type="submit" class="w-full bg-berserk hover:bg-red-800 text-white py-4 font-bold uppercase tracking-wider transition-all hover:scale-105 active:scale-95 focus:ring-2 focus:ring-berserk focus:ring-offset-2 focus:ring-offset-black">
+                                    Проанализировать
+                                </button>
+                            </form>
+                            <div id="ip-result" class="mt-6 text-neutral-300 font-mono text-sm whitespace-pre-wrap"></div>
+                        `;
+                    } else if (id === 2) {
+                        html = `
+                            <div class="text-center mb-8">
+                                <div class="inline-flex p-4 bg-berserk/10 rounded-full text-berserk mb-4">
+                                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">${tool.icon}</svg>
+                                </div>
+                                <h2 class="text-2xl font-bold text-white uppercase tracking-wider">${tool.name[state.lang]}</h2>
+                                <p class="text-neutral-400 mt-2">${tool.desc[state.lang]}</p>
+                            </div>
+                            <form onsubmit="identifyHash(event); return false;">
+                                <input type="text" id="hash-input" placeholder="Вставьте хеш (MD5, SHA и т.д.)" required class="w-full bg-neutral-950 border border-neutral-800 rounded px-4 py-3 text-white placeholder-neutral-600 focus:outline-none focus:border-berserk focus:ring-1 focus:ring-berserk mb-4">
+                                <button type="submit" class="w-full bg-berserk hover:bg-red-800 text-white py-4 font-bold uppercase tracking-wider transition-all hover:scale-105 active:scale-95 focus:ring-2 focus:ring-berserk focus:ring-offset-2 focus:ring-offset-black">
+                                    Определить тип
+                                </button>
+                            </form>
+                            <div id="hash-result" class="mt-6 text-neutral-300 font-mono text-sm"></div>
+                        `;
+                    } else if (id === 4) {
+                        html = `
+                            <div class="text-center mb-8">
+                                <div class="inline-flex p-4 bg-berserk/10 rounded-full text-berserk mb-4">
+                                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">${tool.icon}</svg>
+                                </div>
+                                <h2 class="text-2xl font-bold text-white uppercase tracking-wider">${tool.name[state.lang]}</h2>
+                                <p class="text-neutral-400 mt-2">${tool.desc[state.lang]}</p>
+                            </div>
+                            <form onsubmit="checkEmailBreaches(event); return false;">
+                                <input type="email" id="email-input" placeholder="Введите email для проверки утечек" required class="w-full bg-neutral-950 border border-neutral-800 rounded px-4 py-3 text-white placeholder-neutral-600 focus:outline-none focus:border-berserk focus:ring-1 focus:ring-berserk mb-4">
+                                <button type="submit" class="w-full bg-berserk hover:bg-red-800 text-white py-4 font-bold uppercase tracking-wider transition-all hover:scale-105 active:scale-95 focus:ring-2 focus:ring-berserk focus:ring-offset-2 focus:ring-offset-black">
+                                    Проверить утечки
+                                </button>
+                            </form>
+                            <div id="email-result" class="mt-6 text-neutral-300 font-mono text-sm"></div>
+                            <p class="text-xs text-neutral-500 mt-4">Без API-ключа HIBP запросы ограничены. Для частого использования купи ключ на haveibeenpwned.com</p>
+                        `;
+                    } else {
+                        // остальные инструменты — в разработке
+                        html = `
+                            <div class="text-center mb-8">
+                                <div class="inline-flex p-4 bg-berserk/10 rounded-full text-berserk mb-4">
+                                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">${tool.icon}</svg>
+                                </div>
+                                <h2 class="text-2xl font-bold text-white uppercase tracking-wider">${tool.name[state.lang]}</h2>
+                                <p class="text-neutral-400 mt-2">${t.toolDesc}</p>
+                            </div>
+                            <button onclick="handleWaitlist()" class="w-full bg-berserk hover:bg-red-800 text-white py-4 font-bold uppercase tracking-wider transition-all hover:scale-105 active:scale-95 focus:ring-2 focus:ring-berserk focus:ring-offset-2 focus:ring-offset-black">
+                                ${t.joinWaitlist}
+                            </button>
+                        `;
+                    }
+                }
+            } else if (type === 'privacy') {
+                html = `<h2 class="text-2xl font-bold text-white mb-6 uppercase tracking-wider">${t.privacyTitle}</h2><div class="prose prose-invert max-w-none text-neutral-300">${t.privacyContent}</div>`;
+            } else if (type === 'terms') {
+                html = `<h2 class="text-2xl font-bold text-white mb-6 uppercase tracking-wider">${t.termsTitle}</h2><div class="prose prose-invert max-w-none text-neutral-300">${t.termsContent}</div>`;
+            } else if (type === 'about') {
+                html = `<h2 class="text-2xl font-bold text-white mb-6 uppercase tracking-wider">${t.aboutTitle}</h2><div class="prose prose-invert max-w-none text-neutral-300">${t.aboutContent}</div>`;
+            } else if (type === 'docs') {
+                html = `<h2 class="text-2xl font-bold text-white mb-6 uppercase tracking-wider">${t.docsTitle}</h2><div class="prose prose-invert max-w-none text-neutral-300">${t.docsContent}</div>`;
+            }
+
+            els.modalContent.innerHTML = html;
+            els.modalOverlay.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            state.isModalOpen = false;
+            els.modalOverlay.classList.add('hidden');
+        }
+
+        function handleWaitlist() {
+            showToast(translations[state.lang].waitlistSuccess);
+            closeModal();
+        }
+
+        function showToast(msg) {
+            els.toastMsg.textContent = msg;
+            els.toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => { els.toast.classList.add('translate-y-20', 'opacity-0'); }, 3000);
+        }
+
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function toggleMobileMenu() {
+            els.mobileNav.classList.toggle('hidden');
+        }
+
+        // === Функции инструментов ===
+
+        async function analyzeIP(e) {
+            e.preventDefault();
+            const ip = document.getElementById('ip-input')?.value?.trim();
+            const resultDiv = document.getElementById('ip-result');
+            if (!ip || !resultDiv) return;
+
+            resultDiv.innerHTML = '<span class="text-yellow-400">Загрузка...</span>';
+
+            try {
+                const geoRes = await fetch(`https://ipapi.co/${ip}/json/`);
+                const geo = await geoRes.json();
+
+                let output = `IP: ${ip}\n\n`;
+
+                if (geo.error) {
+                    output += `Ошибка геолокации: ${geo.reason || 'Неизвестная ошибка'}\n\n`;
+                } else {
+                    output += `Страна: ${geo.country_name || '-'}\n`;
+                    output += `Город: ${geo.city || '-'}\n`;
+                    output += `Провайдер: ${geo.org || geo.asn || '-'}\n`;
+                    output += `Координаты: ${geo.latitude || '-'} / ${geo.longitude || '-'}\n\n`;
+                }
+
+                const whoisRes = await fetch(`https://api.hackertarget.com/whois/?q=${ip}`);
+                const whois = await whoisRes.text();
+
+                output += `WHOIS:\n${whois.substring(0, 2000)}${whois.length > 2000 ? '...\n(полный текст слишком большой)' : ''}`;
+
+                resultDiv.innerHTML = `<pre class="bg-neutral-950 p-4 rounded overflow-auto max-h-96 text-left">${output}</pre>`;
+            } catch (err) {
+                resultDiv.innerHTML = `<span class="text-red-400">Ошибка: ${err.message}</span>`;
+            }
+        }
+
+        function identifyHash(e) {
+            e.preventDefault();
+            const hash = document.getElementById('hash-input')?.value?.trim();
+            const resultDiv = document.getElementById('hash-result');
+            if (!hash || !resultDiv) return;
+
+            let type = 'Неизвестный тип хеша';
+            const len = hash.length;
+
+            if (/^[0-9a-f]{32}$/i.test(hash)) type = 'MD5';
+            else if (/^[0-9a-f]{40}$/i.test(hash)) type = 'SHA-1';
+            else if (/^[0-9a-f]{64}$/i.test(hash)) type = 'SHA-256';
+            else if (/^[0-9a-f]{128}$/i.test(hash)) type = 'SHA-512';
+            else if (hash.startsWith('$2') && hash.length === 60) type = 'bcrypt';
+            else if (/^[\w\-+/=]{43}$/.test(hash)) type = 'NTLM (Windows)';
+
+            resultDiv.innerHTML = `<strong>Вероятный тип:</strong> ${type}<br><br><small class="text-neutral-500">Определение по длине и формату. Для точного результата используй специализированные сервисы.</small>`;
+        }
+
+        async function checkEmailBreaches(e) {
+            e.preventDefault();
+            const email = document.getElementById('email-input')?.value?.trim();
+            const resultDiv = document.getElementById('email-result');
+            if (!email || !resultDiv) return;
+
+            resultDiv.innerHTML = '<span class="text-yellow-400">Проверка...</span>';
+
+            try {
+                const res = await fetch(`https://haveibeenpwned.com/api/v3/breachedaccount/${encodeURIComponent(email)}?truncateResponse=true`, {
+                    headers: { 'User-Agent': 'BerserkOSINT' }
+                });
+
+                if (res.status === 404) {
+                    resultDiv.innerHTML = '<span class="text-green-400">Утечек не найдено. Email чистый.</span>';
+                    return;
+                }
+
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+                const breaches = await res.json();
+                let output = `<strong>Найдено утечек: ${breaches.length}</strong>\n\n`;
+
+                breaches.forEach(b => {
+                    output += `• ${b.Name} (${b.BreachDate || 'дата неизвестна'})\n  Утечки: ${b.DataClasses.join(', ')}\n\n`;
+                });
+
+                resultDiv.innerHTML = `<pre class="bg-neutral-950 p-4 rounded overflow-auto max-h-96 text-left">${output}</pre>`;
+            } catch (err) {
+                resultDiv.innerHTML = `<span class="text-red-400">Ошибка: ${err.message}<br>Попробуй позже (HIBP ограничивает запросы без ключа).</span>`;
+            }
+        }
+
+        // Запуск
+        init();
+    </script>
+</body>
+</html>

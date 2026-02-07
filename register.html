@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Berserk.net | Регистрация</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        berserk: '#dc2626',
+                        dark: '#0a0a0a',
+                        card: '#171717',
+                        border: '#262626'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #050505;
+            color: #e5e5e5;
+            font-family: sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .glitch-text {
+            position: relative;
+        }
+        .glitch-text::before,
+        .glitch-text::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .glitch-text::before {
+            left: 2px;
+            text-shadow: -1px 0 #dc2626;
+            clip: rect(24px, 550px, 90px, 0);
+            animation: glitch-anim-2 3s infinite linear alternate-reverse;
+        }
+        .glitch-text::after {
+            left: -2px;
+            text-shadow: -1px 0 #00ffff;
+            clip: rect(85px, 550px, 140px, 0);
+            animation: glitch-anim 2.5s infinite linear alternate-reverse;
+        }
+        @keyframes glitch-anim {
+            0% { clip: rect(10px, 9999px, 30px, 0); }
+            20% { clip: rect(80px, 9999px, 100px, 0); }
+            100% { clip: rect(5px, 9999px, 60px, 0); }
+        }
+        @keyframes glitch-anim-2 {
+            0% { clip: rect(60px, 9999px, 80px, 0); }
+            20% { clip: rect(10px, 9999px, 40px, 0); }
+            100% { clip: rect(90px, 9999px, 110px, 0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="max-w-md w-full px-6 py-12 bg-neutral-900 border border-neutral-800 rounded-lg shadow-2xl mx-4">
+        <a href="index.html" class="inline-flex items-center text-neutral-400 hover:text-berserk mb-8 transition-colors">
+            ← На главную
+        </a>
+
+        <div class="text-center mb-10">
+            <div class="w-16 h-16 mx-auto bg-berserk rounded-full flex items-center justify-center mb-4">
+                <span class="text-white text-2xl font-black">B</span>
+            </div>
+            <h1 class="text-4xl font-black text-white glitch-text mb-2" data-text="РЕГИСТРАЦИЯ">РЕГИСТРАЦИЯ</h1>
+            <p class="text-neutral-400">Создайте аккаунт для доступа к инструментам</p>
+        </div>
+
+        <form action="https://formspree.io/f/mbdajavj" method="POST" id="register-form">
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-neutral-400 mb-2">Имя пользователя</label>
+                    <input name="username" type="text" required placeholder="your_nickname" class="w-full bg-neutral-950 border border-neutral-700 rounded px-4 py-3 text-white placeholder-neutral-600 focus:outline-none focus:border-berserk focus:ring-1 focus:ring-berserk transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-neutral-400 mb-2">Email</label>
+                    <input name="email" type="email" required placeholder="you@example.com" class="w-full bg-neutral-950 border border-neutral-700 rounded px-4 py-3 text-white placeholder-neutral-600 focus:outline-none focus:border-berserk focus:ring-1 focus:ring-berserk transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-neutral-400 mb-2">Пароль</label>
+                    <input name="password" type="password" required placeholder="••••••••" class="w-full bg-neutral-950 border border-neutral-700 rounded px-4 py-3 text-white placeholder-neutral-600 focus:outline-none focus:border-berserk focus:ring-1 focus:ring-berserk transition-all">
+                </div>
+            </div>
+
+            <button type="submit" class="w-full mt-8 bg-berserk hover:bg-red-700 text-white font-bold py-4 px-6 rounded uppercase tracking-wider transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-berserk focus:ring-offset-2 focus:ring-offset-black">
+                Создать аккаунт
+            </button>
+        </form>
+
+        <p class="text-center text-neutral-500 text-sm mt-6">
+            Уже зарегистрированы? <a href="index.html" class="text-berserk hover:underline">Войти</a>
+        </p>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <div class="bg-neutral-900 border border-berserk text-white px-6 py-4 rounded shadow-lg flex items-center gap-3">
+            <svg class="w-5 h-5 text-berserk" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            <span id="toast-message" class="font-medium">Аккаунт создан!</span>
+        </div>
+    </div>
+
+   <!-- ... весь HTML как раньше ... -->
+
+<script>
+    document.getElementById('register-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const form = e.target;
+        const username = form.querySelector('input[name="username"]').value;
+        const email = form.querySelector('input[name="email"]').value;
+
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form),
+                headers: { 'Accept': 'application/json' }
+            });
+
+            if (response.ok) {
+                localStorage.setItem('user', JSON.stringify({
+                    loggedIn: true,
+                    username: username,
+                    email: email
+                }));
+
+                const toast = document.getElementById('toast');
+                toast.querySelector('#toast-message').textContent = 'Аккаунт создан! Добро пожаловать.';
+                toast.classList.remove('translate-y-20', 'opacity-0');
+                setTimeout(() => {
+                    toast.classList.add('translate-y-20', 'opacity-0');
+                    window.location.href = 'index.html';
+                }, 3000);
+            } else {
+                alert('Ошибка при регистрации');
+            }
+        } catch (err) {
+            alert('Ошибка сети');
+        }
+    });
+</script>
+</body>
+</html>
