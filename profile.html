@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль | Berserk.net</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        berserk: '#dc2626',
+                        dark: '#0a0a0a',
+                        card: '#171717',
+                        border: '#262626'
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.8s ease-out forwards',
+                        'slide-up': 'slideUp 0.8s ease-out forwards',
+                        'glow-pulse': 'glowPulse 3s infinite alternate',
+                        'neon-flicker': 'neonFlicker 1.5s infinite alternate'
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        slideUp: { '0%': { opacity: '0', transform: 'translateY(30px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+                        glowPulse: { '0%': { boxShadow: '0 0 10px #dc262640' }, '100%': { boxShadow: '0 0 40px #dc2626aa' } },
+                        neonFlicker: { '0%, 100%': { opacity: '1' }, '50%': { opacity: '0.85' } }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background: linear-gradient(135deg, #050505 0%, #0a0000 100%); color: #e5e5e5; font-family: sans-serif; }
+        .glitch-text { position: relative; animation: neonFlicker 4s infinite; }
+        .glitch-text::before, .glitch-text::after { content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .glitch-text::before { left: 2px; text-shadow: -2px 0 #dc2626; clip: rect(24px, 9999px, 90px, 0); animation: glitch-anim-2 4s infinite linear alternate-reverse; }
+        .glitch-text::after { left: -2px; text-shadow: 2px 0 #00ffff; clip: rect(85px, 9999px, 140px, 0); animation: glitch-anim 3.5s infinite linear alternate-reverse; }
+        @keyframes glitch-anim { 0% { clip: rect(10px, 9999px, 30px, 0); } 20% { clip: rect(80px, 9999px, 100px, 0); } 100% { clip: rect(5px, 9999px, 60px, 0); } }
+        @keyframes glitch-anim-2 { 0% { clip: rect(60px, 9999px, 80px, 0); } 20% { clip: rect(10px, 9999px, 40px, 0); } 100% { clip: rect(90px, 9999px, 110px, 0); } }
+
+        .avatar-glow { box-shadow: 0 0 40px rgba(220,38,38,0.5); transition: all 0.4s; }
+        .avatar-glow:hover { transform: scale(1.1); box-shadow: 0 0 80px rgba(220,38,38,0.8); filter: brightness(1.2); }
+
+        .card-hover { transition: all 0.4s cubic-bezier(0.4,0,0.2,1); }
+        .card-hover:hover { transform: translateY(-12px) scale(1.04); box-shadow: 0 25px 60px rgba(220,38,38,0.25); border-color: #dc2626; }
+
+        .progress-glow { box-shadow: 0 0 20px #dc2626aa; transition: width 1.5s ease-out; }
+        .achievement-unlocked { animation: glowPulse 2s infinite alternate; border-color: #dc2626 !important; background: rgba(220,38,38,0.1) !important; }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col bg-black">
+
+    <!-- NAVBAR -->
+    <nav class="fixed top-0 w-full z-50 bg-black/90 backdrop-blur-lg border-b border-[#262626]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-berserk flex items-center justify-center font-black text-white rounded">B</div>
+                    <span class="font-black text-xl tracking-tight text-white">BERSERK<span class="text-berserk">.NET</span></span>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="index.html" class="text-neutral-400 hover:text-white transition-colors text-sm font-medium uppercase tracking-wide">На главную</a>
+                    <a href="tools.html" class="text-neutral-400 hover:text-white transition-colors text-sm font-medium uppercase tracking-wide">Инструменты</a>
+                    <div class="h-4 w-px bg-neutral-800"></div>
+                    <div class="flex items-center gap-4">
+                        <span class="text-neutral-300">Привет, <span id="username-display">Пользователь</span></span>
+                        <a href="profile.html" class="text-neutral-300 hover:text-white px-3 py-1 rounded hover:bg-neutral-800 transition">Профиль</a>
+                        <button onclick="logout()" class="bg-neutral-800 hover:bg-neutral-700 text-white px-4 py-2 text-sm font-bold uppercase rounded transition-all">Выйти</button>
+                    </div>
+                </div>
+                <button class="md:hidden text-neutral-400 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN PROFILE -->
+    <main class="flex-1 pt-24 pb-16">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+
+            <!-- Неоновый баннер профиля -->
+            <div class="relative bg-gradient-to-br from-neutral-900 via-black to-neutral-950 border border-neutral-800 rounded-3xl p-8 md:p-12 mb-12 overflow-hidden shadow-2xl shadow-berserk/30 neon-flicker">
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,#dc262620_0%,transparent_60%)] opacity-60"></div>
+                <div class="relative flex flex-col md:flex-row items-center md:items-start gap-10">
+                    <!-- Аватар -->
+                    <div class="relative group">
+                        <img id="avatar" src="https://via.placeholder.com/160/171717/ffffff?text=USER" alt="Аватар" class="w-44 h-44 md:w-56 md:h-56 rounded-full object-cover border-4 border-berserk shadow-2xl avatar-glow">
+                        <label for="avatar-upload" class="absolute inset-0 flex items-center justify-center bg-black/70 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer">
+                            <span class="text-white text-base font-bold bg-berserk/90 px-8 py-4 rounded-full hover:bg-berserk transition transform hover:scale-110">Изменить</span>
+                        </label>
+                        <input type="file" id="avatar-upload" accept="image/*" class="hidden">
+                    </div>
+
+                    <!-- Инфо -->
+                    <div class="text-center md:text-left">
+                        <h1 id="username" class="text-5xl md:text-7xl font-black text-white glitch-text" data-text="Пользователь">Пользователь</h1>
+                        <p class="text-2xl md:text-3xl text-neutral-400 mt-4">
+                            Уровень: <span class="text-berserk font-black glitch-text" data-text="Исследователь">Исследователь</span>
+                        </p>
+
+                        <!-- Прогресс-бар -->
+                        <div class="mt-10 max-w-lg mx-auto md:mx-0">
+                            <div class="flex justify-between text-base mb-3">
+                                <span class="text-neutral-400">Активность</span>
+                                <span id="points-display" class="text-berserk font-black">142 / 500</span>
+                            </div>
+                            <div class="h-8 bg-neutral-800 rounded-full overflow-hidden border border-neutral-700 shadow-inner">
+                                <div id="progress-bar" class="h-full bg-gradient-to-r from-berserk via-red-600 to-berserk rounded-full progress-glow" style="width: 28%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+                <!-- Левая колонка -->
+                <div class="lg:col-span-2 space-y-8">
+
+                    <!-- Статистика -->
+                    <div class="bg-neutral-900/80 border border-neutral-800 rounded-2xl p-8 backdrop-blur-sm">
+                        <h2 class="text-4xl font-black text-white mb-10 flex items-center gap-4 glitch-text" data-text="СТАТИСТИКА">СТАТИСТИКА</h2>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                            <div class="text-center p-8 bg-neutral-800/60 rounded-2xl border border-neutral-700 card-hover">
+                                <div class="text-6xl font-black text-berserk">187</div>
+                                <div class="text-base text-neutral-400 mt-3">Поисков</div>
+                            </div>
+                            <div class="text-center p-8 bg-neutral-800/60 rounded-2xl border border-neutral-700 card-hover">
+                                <div class="text-6xl font-black text-berserk">42</div>
+                                <div class="text-base text-neutral-400 mt-3">Сохранено</div>
+                            </div>
+                            <div class="text-center p-8 bg-neutral-800/60 rounded-2xl border border-neutral-700 card-hover">
+                                <div class="text-6xl font-black text-berserk">9</div>
+                                <div class="text-base text-neutral-400 mt-3">Достижений</div>
+                            </div>
+                            <div class="text-center p-8 bg-neutral-800/60 rounded-2xl border border-neutral-700 card-hover">
+                                <div class="text-6xl font-black text-berserk">#128</div>
+                                <div class="text-base text-neutral-400 mt-3">В рейтинге</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Достижения -->
+                    <div class="bg-neutral-900/80 border border-neutral-800 rounded-2xl p-8 backdrop-blur-sm">
+                        <h2 class="text-4xl font-black text-white mb-10 flex items-center gap-4 glitch-text" data-text="ДОСТИЖЕНИЯ">ДОСТИЖЕНИЯ</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="bg-neutral-800/70 p-8 rounded-2xl border border-neutral-700 card-hover achievement-unlocked animate-slide-up">
+                                <div class="text-7xl mb-4">🔥</div>
+                                <h3 class="text-2xl font-black text-white">Огненный старт</h3>
+                                <p class="text-base text-neutral-400 mt-3">10 успешных поисков</p>
+                            </div>
+                            <div class="bg-neutral-800/70 p-8 rounded-2xl border border-neutral-700 card-hover animate-slide-up" style="animation-delay: 0.2s;">
+                                <div class="text-7xl mb-4">📸</div>
+                                <h3 class="text-2xl font-black text-white">Фото-детектив</h3>
+                                <p class="text-base text-neutral-400 mt-3">Первый reverse image</p>
+                            </div>
+                            <div class="bg-neutral-800/70 p-8 rounded-2xl border border-neutral-700 card-hover opacity-70 animate-slide-up" style="animation-delay: 0.4s;">
+                                <div class="text-7xl mb-4">🏆</div>
+                                <h3 class="text-2xl font-black text-white">Топ-100</h3>
+                                <p class="text-base text-neutral-400 mt-3">Глобальный рейтинг</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Последние поиски -->
+                    <div class="bg-neutral-900/80 border border-neutral-800 rounded-2xl p-8 backdrop-blur-sm">
+                        <h2 class="text-4xl font-black text-white mb-8 flex items-center gap-4 glitch-text" data-text="ПОСЛЕДНИЕ ПОИСКИ">ПОСЛЕДНИЕ ПОИСКИ</h2>
+                        <div id="recent-searches" class="space-y-5">
+                            <!-- Динамически заполняется из localStorage -->
+                            <p class="text-neutral-400 text-center py-8">Пока нет поисков. Начни разведку!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Правая колонка -->
+                <div class="space-y-8">
+
+                    <!-- Промокоды -->
+                    <div class="bg-neutral-900/80 border border-neutral-800 rounded-2xl p-8 backdrop-blur-sm">
+                        <h2 class="text-4xl font-black text-white mb-8 flex items-center gap-4 glitch-text" data-text="ПРОМОКОДЫ">ПРОМОКОДЫ</h2>
+                        <div class="mb-8">
+                            <input type="text" id="promo-input" placeholder="Введите промокод" class="w-full bg-neutral-950 border border-neutral-700 rounded-lg px-6 py-5 text-white focus:outline-none focus:border-berserk focus:ring-2 focus:ring-berserk/50 transition-all text-xl">
+                            <button onclick="activatePromo()" class="mt-5 w-full bg-gradient-to-r from-berserk to-red-800 hover:from-red-700 hover:to-berserk text-white py-5 rounded-xl font-black text-xl uppercase tracking-widest transition-all duration-300 hover:shadow-[0_0_50px_#dc2626cc] hover:scale-[1.03]">
+                                Активировать
+                            </button>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-6">Активные акции</h3>
+                        <div class="space-y-5">
+                            <div class="bg-neutral-800/70 p-6 rounded-xl border border-neutral-700 flex items-center gap-5 card-hover">
+                                <div class="text-5xl">🎁</div>
+                                <div>
+                                    <p class="font-black text-berserk text-xl">WELCOME2026</p>
+                                    <p class="text-base text-neutral-400">+50 очков за регистрацию</p>
+                                </div>
+                            </div>
+                            <div class="bg-neutral-800/70 p-6 rounded-xl border border-neutral-700 flex items-center gap-5 card-hover">
+                                <div class="text-5xl">🔥</div>
+                                <div>
+                                    <p class="font-black text-berserk text-xl">WEEKENDHUNT</p>
+                                    <p class="text-base text-neutral-400">+5 бонусных поисков</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Быстрые действия -->
+                    <div class="bg-neutral-900/80 border border-neutral-800 rounded-2xl p-8 backdrop-blur-sm">
+                        <h3 class="text-3xl font-black text-white mb-8 glitch-text" data-text="ДЕЙСТВИЯ">ДЕЙСТВИЯ</h3>
+                        <div class="grid grid-cols-2 gap-6">
+                            <a href="tools.html" class="bg-neutral-800 hover:bg-neutral-700 p-8 rounded-2xl text-center transition-all hover:border-berserk border border-neutral-700 card-hover flex flex-col items-center">
+                                <span class="text-6xl mb-4">🔍</span>
+                                <span class="text-xl font-bold">Инструменты</span>
+                            </a>
+                            <a href="https://t.me/Berserk_Supportt" target="_blank" class="bg-neutral-800 hover:bg-neutral-700 p-8 rounded-2xl text-center transition-all hover:border-berserk border border-neutral-700 card-hover flex flex-col items-center">
+                                <span class="text-6xl mb-4">🛠️</span>
+                                <span class="text-xl font-bold">Поддержка</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-black border-t border-[#262626] py-12 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-neutral-500">
+            © 2026 BERSERK.NET — NO LOGS. NO LIMITS.
+        </div>
+    </footer>
+
+    <script>
+        // Загрузка данных
+        window.addEventListener('load', () => {
+            const user = JSON.parse(localStorage.getItem('user')) || { username: 'General' };
+            document.getElementById('username').textContent = user.username;
+            document.getElementById('username-display').textContent = user.username;
+
+            // Аватар
+            const avatarData = localStorage.getItem('avatar');
+            if (avatarData) document.getElementById('avatar').src = avatarData;
+
+            // Прогресс-бар анимация
+            setTimeout(() => {
+                document.getElementById('progress-bar').style.width = '28%';
+            }, 800);
+
+            // Последние поиски (пример)
+            loadRecentSearches();
+        });
+
+        // Загрузка аватарки
+        document.getElementById('avatar-upload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const src = event.target.result;
+                document.getElementById('avatar').src = src;
+                localStorage.setItem('avatar', src);
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Промокод
+        function activatePromo() {
+            const code = document.getElementById('promo-input').value.trim();
+            if (!code) return alert('Введите промокод!');
+
+            const btn = event.target;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="animate-pulse">Проверка...</span>';
+
+            setTimeout(() => {
+                alert(`Промокод "${code}" активирован!\n+50 очков и 5 поисков добавлено!`);
+                btn.innerHTML = 'Активировать';
+                btn.disabled = false;
+                btn.classList.add('bg-green-600', 'hover:bg-green-700');
+                setTimeout(() => btn.classList.remove('bg-green-600', 'hover:bg-green-700'), 3000);
+            }, 1800);
+        }
+
+        // Последние поиски (заглушка + сохранение)
+        function loadRecentSearches() {
+            const searches = JSON.parse(localStorage.getItem('recentSearches') || '[]');
+            const container = document.getElementById('recent-searches');
+            if (searches.length === 0) {
+                container.innerHTML = '<p class="text-neutral-400 text-center py-10">Пока нет поисков. Начни разведку!</p>';
+                return;
+            }
+
+            container.innerHTML = searches.map(s => `
+                <div class="bg-neutral-800/70 p-6 rounded-xl border border-neutral-700 flex justify-between items-center card-hover">
+                    <div>
+                        <p class="font-bold text-white">${s.type}: ${s.query}</p>
+                        <p class="text-sm text-neutral-400">${new Date(s.date).toLocaleString()}</p>
+                    </div>
+                    <span class="text-berserk text-sm">Детали →</span>
+                </div>
+            `).join('');
+        }
+
+        // Пример сохранения поиска (можно вызвать из tools.html)
+        // localStorage.setItem('recentSearches', JSON.stringify([...(JSON.parse(localStorage.getItem('recentSearches') || '[]')), { type: 'IP', query: '8.8.8.8', date: new Date() }]))
+
+        function logout() {
+            localStorage.removeItem('user');
+            localStorage.removeItem('avatar');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

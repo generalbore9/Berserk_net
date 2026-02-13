@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Berserk.net | Вход</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #050505; color: #e5e5e5; font-family: sans-serif; }
+        .berserk { color: #dc2626; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center bg-black">
+    <div class="w-full max-w-md p-8 bg-neutral-900 rounded-lg shadow-xl border border-neutral-800">
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 mx-auto bg-berserk rounded-full flex items-center justify-center text-white font-black text-3xl">B</div>
+            <h1 class="text-3xl font-black text-white mt-4">ВОЙТИ</h1>
+            <p class="text-neutral-400 mt-2">Войдите в свой аккаунт</p>
+        </div>
+
+        <form id="login-form" class="space-y-6">
+            <div>
+                <label class="block text-sm font-medium text-neutral-300 mb-2">Email или имя пользователя</label>
+                <input type="text" id="identifier" required class="w-full bg-neutral-950 border border-neutral-800 rounded px-4 py-3 text-white placeholder-neutral-600 focus:outline-none focus:border-berserk focus:ring-1 focus:ring-berserk">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-neutral-300 mb-2">Пароль</label>
+                <input type="password" id="password" required class="w-full bg-neutral-950 border border-neutral-800 rounded px-4 py-3 text-white placeholder-neutral-600 focus:outline-none focus:border-berserk focus:ring-1 focus:ring-berserk">
+            </div>
+
+            <button type="submit" class="w-full bg-berserk hover:bg-red-800 text-white py-4 font-bold uppercase tracking-wider transition-all hover:scale-105 active:scale-95 rounded">
+                ВОЙТИ
+            </button>
+        </form>
+
+        <p class="text-center text-neutral-500 mt-6">
+            Нет аккаунта? <a href="register.html" class="text-berserk hover:underline">Зарегистрироваться</a>
+        </p>
+
+        <p class="text-center mt-4">
+            <a href="index.html" class="text-neutral-400 hover:text-white">← На главную</a>
+        </p>
+    </div>
+
+    <script>
+        // Функция хэширования пароля (та же, что в register)
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hash = await crypto.subtle.digest('SHA-256', data);
+            return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        document.getElementById('login-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const identifier = document.getElementById('identifier').value.trim().toLowerCase();
+            const password = document.getElementById('password').value;
+
+            // Получаем всех пользователей
+            const users = JSON.parse(localStorage.getItem('users') || '{}');
+
+            // Ищем пользователя по email или username
+            let foundUser = null;
+            for (const email in users) {
+                const u = users[email];
+                if (u.email.toLowerCase() === identifier || u.username.toLowerCase() === identifier) {
+                    foundUser = u;
+                    break;
+                }
+            }
+
+            if (!foundUser) {
+                return alert("Пользователь не найден");
+            }
+
+            // Проверяем пароль (хэш)
+            const inputHash = await hashPassword(password);
+            if (foundUser.passwordHash !== inputHash) {
+                return alert("Неверный пароль");
+            }
+
+            // Успешный вход
+            const user = { ...foundUser, loggedIn: true };
+            localStorage.setItem('user', JSON.stringify(user));
+
+           
+localStorage.setItem('agreed', 'true');  // ← это главное!
+alert("Вход выполнен успешно!");
+window.location.href = "index.html";
+        });
+    </script>
+</body>
+</html>
